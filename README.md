@@ -9,7 +9,8 @@ when we insert dynamically children views or when we modify their content.
 
 This class is a workaround that recomputes sizes and forces a new layout for those views.
 
-Simply call wrapContentAgain() on the view you want and it will reprocess all the subtree.
+When invalidate(), requestLayout() or recomputeViewAttributes() don't work for you, 
+simply call wrapContentAgain() on the view you want and it will reprocess all the subtree.
 
 
 NOTES:
