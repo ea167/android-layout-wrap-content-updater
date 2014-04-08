@@ -12,13 +12,14 @@ import android.view.ViewGroup.LayoutParams;
  * NOTES: 
  * 		- To enable easier debugging, tag your nodes with android:tag="Name-of-my-node"
  * 		- Avoid using wrap_content on ScrollView!
- * 		- Works well with left and top gravity, but NOT yet with center (not tested with right / bottom)
+ * 		- If you have center or right/bottom gravity, you should re-layout all nodes, not only the wrap_content: just call the method with the boolean set to true
  * 
  * @author Eric, April 2014
  */
 public class LayoutWrapContentUpdater
 {
 	public static final String TAG = LayoutWrapContentUpdater.class.getName();
+
 
 	/**
 	 * Does what a proper requestLayout() should do about layout_width or layout_height = "wrap_content"
@@ -30,12 +31,18 @@ public class LayoutWrapContentUpdater
 	 */
 	public static final void wrapContentAgain( ViewGroup subTreeRoot )
 	{
-		wrapContentAgain( subTreeRoot, MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED );
+		wrapContentAgain( subTreeRoot, false, MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED );
+	}
+	/** Same but allows re-layout of all views, not only those with "wrap_content". Necessary for "center", "right", "bottom",... */
+	public static final void wrapContentAgain( ViewGroup subTreeRoot, boolean relayoutAllNodes )
+	{
+		wrapContentAgain( subTreeRoot, relayoutAllNodes, MeasureSpec.UNSPECIFIED, MeasureSpec.UNSPECIFIED );
 	}
 	/**
 	 * Same as previous, but with given size in case subTreeRoot itself has layout_width or layout_height = "wrap_content"
 	 */
-	public static void wrapContentAgain( ViewGroup subTreeRoot, int subTreeRootWidthMeasureSpec, int subTreeRootHeightMeasureSpec  )
+	public static void wrapContentAgain( ViewGroup subTreeRoot, boolean relayoutAllNodes,
+			int subTreeRootWidthMeasureSpec, int subTreeRootHeightMeasureSpec  )
 	{
 		Log.d(TAG, "+++ LayoutWrapContentUpdater wrapContentAgain on subTreeRoot=["+ subTreeRoot +"], with w="
 				+ subTreeRootWidthMeasureSpec +" and h="+ subTreeRootHeightMeasureSpec );
@@ -58,7 +65,7 @@ public class LayoutWrapContentUpdater
 		subTreeRoot.measure( widthMeasureSpec, heightMeasureSpec ); 
 
 		// --- Then recurse on all children to correct the sizes 
-		recurseWrapContent( subTreeRoot );
+		recurseWrapContent( subTreeRoot, relayoutAllNodes );
 
 		// --- RequestLayout to finish properly
 		subTreeRoot.requestLayout();		
@@ -69,7 +76,7 @@ public class LayoutWrapContentUpdater
 	/**
 	 * Internal method to recurse on view tree. Tag you View nodes in XML layouts to read the logs more easily
 	 */
-	private static void recurseWrapContent( View nodeView )
+	private static void recurseWrapContent( View nodeView, boolean relayoutAllNodes )
 	{
 		// Does not recurse when visibility GONE
 		if ( nodeView.getVisibility() == View.GONE ) {
@@ -78,8 +85,8 @@ public class LayoutWrapContentUpdater
 		}
 		
 		LayoutParams layoutParams = nodeView.getLayoutParams();
-		boolean isWrapWidth  = ( layoutParams.width  == LayoutParams.WRAP_CONTENT );
-		boolean isWrapHeight = ( layoutParams.height == LayoutParams.WRAP_CONTENT );
+		boolean isWrapWidth  = ( layoutParams.width  == LayoutParams.WRAP_CONTENT ) || relayoutAllNodes;
+		boolean isWrapHeight = ( layoutParams.height == LayoutParams.WRAP_CONTENT ) || relayoutAllNodes;
 
 		if ( isWrapWidth || isWrapHeight ) {
 			
@@ -108,7 +115,7 @@ public class LayoutWrapContentUpdater
 		if ( nodeView instanceof ViewGroup ) {
 			ViewGroup nodeGroup = (ViewGroup)nodeView;
 			for (int i = 0; i < nodeGroup.getChildCount(); i++) {
-				recurseWrapContent( nodeGroup.getChildAt(i) );
+				recurseWrapContent( nodeGroup.getChildAt(i), relayoutAllNodes );
 			}
 		}
 		return;
