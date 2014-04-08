@@ -18,7 +18,7 @@ NOTES:
 - Must be called on UI-Thread (main thread), so post to a handler if needed
 - To enable easier debugging, tag your nodes with android:tag="Name-of-my-node"
 - Avoid using wrap_content on ScrollView!
-- Works well with left and top gravity, but NOT yet with center (not tested with right / bottom)
+- If you have center or right/bottom gravity, you should re-layout all nodes, not only the wrap_content: just call the method with the boolean set to true
 
 
 End of nightmare, enjoy!
